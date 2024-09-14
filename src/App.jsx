@@ -3,7 +3,7 @@ import confetti from "canvas-confetti"
 
 import { Square } from "./components/Square.jsx"
 
-import { TURNS, SCORE } from "./constants.js";
+import { TURNS } from "./constants.js";
 
 import { checkWinnerFrom, checkEndGame } from "./logic/board.js";
 
@@ -22,10 +22,15 @@ function App() {
     return turnFromStorage ?? TURNS.X
   })
 
-  const [score, setScore] = useState(() => {
-    const scoreFromStorage = window.localStorage.getItem('score')
-    if (scoreFromStorage) return JSON.parse(scoreFromStorage)
-    return Array(2).fill(0)
+  const [scoreX, setScoreX] = useState(() => {
+    const scoreXFromStorage = window.localStorage.getItem('scoreX')
+    if (scoreXFromStorage) return JSON.parse(scoreXFromStorage)
+    return 0
+  })
+  const [scoreO, setScoreO] = useState(() => {
+    const scoreOFromStorage = window.localStorage.getItem('scoreO')
+    if (scoreOFromStorage) return JSON.parse(scoreOFromStorage)
+    return 0
   })
 
   const [winner, setWinner] = useState(null)
@@ -38,8 +43,10 @@ function App() {
     window.localStorage.removeItem('turn')
   }
   const resetScore = () => {
-    window.localStorage.removeItem('score')
-    setScore([0,0])
+    window.localStorage.removeItem('scoreX')
+    window.localStorage.removeItem('scoreO')
+    setScoreX(0)
+    setScoreO(0)
   }
 
   const updateBoard = (index) => {
@@ -53,28 +60,27 @@ function App() {
     const newTurn = turn === TURNS.X ? TURNS.O : TURNS.X
     setTurn(newTurn)
 
-    const newScore = [...score]
-    setScore(newScore)
-
     window.localStorage.setItem('board', JSON.stringify(newBoard))
     window.localStorage.setItem('turn', newTurn)
-    window.localStorage.setItem('score', JSON.stringify(newScore))
+    window.localStorage.setItem('scoreX', JSON.stringify(scoreX))
+    window.localStorage.setItem('scoreO', JSON.stringify(scoreO))
 
     const newWinner = checkWinnerFrom(newBoard)
+
     if (newWinner){
       confetti()
       setWinner(newWinner)
       if (turn === TURNS.X){
-        const meScore = [1, 0]
-        setScore(meScore)
+        setScoreX(scoreX+1)
+        
       } else {
-        const meScore = [0, 1]
-        setScore(meScore)
+        setScoreO(scoreO+1)
+        
       }
-    
     } else if (checkEndGame(newBoard)) {
       setWinner(false)
     }
+    
   }
 
   return (
@@ -103,7 +109,8 @@ function App() {
                 </Square>
       </section>
       <section className="turn">
-        <h2>{score[0]}</h2> || <h2>{score[1]}</h2>
+        <h2>|-- {scoreX} --|-- {scoreO} --|</h2>
+
       </section>
       <button onClick={resetScore}>Clear Score</button>
       <WinnerModal resetGame={resetGame} winner={winner}/>
